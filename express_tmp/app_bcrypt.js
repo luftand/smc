@@ -43,14 +43,16 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' });
     }
 
-    const user = result.rows[0];
-    const isPasswordValid = await bcrypt.compare(password, user.PASSWORD); // 비밀번호 검증
+    // 데이터베이스에서 가져온 사용자의 정보
+    const [id, name, emailFetched, hashedPassword] = result.rows[0];
 
+    // 비밀번호 검증
+    const isPasswordValid = await bcrypt.compare(password, hashedPassword);
     if (!isPasswordValid) {
       return res.status(401).json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' });
     }
 
-    const token = jwt.sign({ id: user.ID, name: user.NAME, email: user.EMAIL }, SECRET_KEY, {
+    const token = jwt.sign({ id, name, email: emailFetched }, SECRET_KEY, {
       expiresIn: '1h' // 토큰 만료 시간 설정 (1시간)
     });
 
@@ -156,10 +158,10 @@ app.put('/users/:id', authenticateToken, async (req, res) => {
         email = :email, 
         password = COALESCE(:password, password) 
        WHERE id = :id`,
-      { 
-        id: parseInt(id), 
-        name, 
-        email, 
+      {
+        id: parseInt(id),
+        name,
+        email,
         password: hashedPassword || null // null이면 기존 비밀번호 유지 
       },
       { autoCommit: true }

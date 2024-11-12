@@ -49,7 +49,8 @@ curl -X PUT http://localhost:3000/boards/1 -H "Content-Type: application/json" -
 curl -X DELETE http://localhost:3000/boards/1
 
 로그인
-curl -X POST http://localhost:3000/login -H "Content-Type: application/json" -d "{\"email\": \"1@smc2024.com\", \"password\": \"12345\"}" -c cookies.txt
+curl -X POST http://localhost:3000/login -H "Content-Type: application/json" -d "{\"email\": \"1@smc2024.com\", \"password\": \"1234\"}" -c cookies.txt
+curl -X POST http://localhost:3000/login -H "Content-Type: application/json" -d "{\"email\": \"2@smc2024.com\", \"password\": \"12345\"}" -c cookies.txt
 
 
 https://jsonplaceholder.typicode.com

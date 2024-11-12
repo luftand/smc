@@ -89,7 +89,7 @@ app.post('/users', async (req, res) => {
 });
 
 // 모든 사용자 조회
-app.get('/users', authenticateToken, async (req, res) => {
+app.get('/users', async (req, res) => {
   const pool = req.app.locals.pool;
 
   try {
@@ -103,7 +103,7 @@ app.get('/users', authenticateToken, async (req, res) => {
 });
 
 // 특정 사용자 조회
-app.get('/users/:id', authenticateToken, async (req, res) => {
+app.get('/users/:id', async (req, res) => {
   const { id } = req.params;
   const pool = req.app.locals.pool;
 
@@ -125,7 +125,7 @@ app.get('/users/:id', authenticateToken, async (req, res) => {
 });
 
 // 사용자 수정
-app.put('/users/:id', authenticateToken, async (req, res) => {
+app.put('/users/:id', async (req, res) => {
   const { id } = req.params;
   const { name, email, password } = req.body;
   const pool = req.app.locals.pool;
@@ -149,7 +149,7 @@ app.put('/users/:id', authenticateToken, async (req, res) => {
 });
 
 // 사용자 삭제
-app.delete('/users/:id', authenticateToken, async (req, res) => {
+app.delete('/users/:id', async (req, res) => {
   const { id } = req.params;
   const pool = req.app.locals.pool;
 
@@ -172,7 +172,7 @@ app.delete('/users/:id', authenticateToken, async (req, res) => {
 });
 
 // 게시판 게시글 생성
-app.post('/boards', authenticateToken, async (req, res) => {
+app.post('/boards', async (req, res) => {
   const { title, link, content, keyword, user_id } = req.body;
   const pool = req.app.locals.pool;
 
@@ -291,7 +291,7 @@ app.get('/boards/:id', async (req, res) => {
 
 
 // 게시글 수정
-app.put('/boards/:id', authenticateToken, async (req, res) => {
+app.put('/boards/:id', async (req, res) => {
   const { id } = req.params;
   const { title, content } = req.body;
   const pool = req.app.locals.pool;
@@ -315,7 +315,7 @@ app.put('/boards/:id', authenticateToken, async (req, res) => {
 });
 
 // 게시글 삭제
-app.delete('/boards/:id', authenticateToken, async (req, res) => {
+app.delete('/boards/:id', async (req, res) => {
   const { id } = req.params;
   const pool = req.app.locals.pool;
 
