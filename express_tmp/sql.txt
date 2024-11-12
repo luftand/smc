@@ -25,26 +25,31 @@ CREATE SEQUENCE boards_seq START WITH 1 INCREMENT BY 1;
 
 
 사용자 생성
-curl -X POST http://localhost:3000/users -H "Content-Type: application/json" -d "{\"name\": \"홍길동\", \"email\": \"hong@example.com\", \"password\": \"비밀번호\"}"
+curl -X POST http://localhost:3000/users -H "Content-Type: application/json" -d "{\"name\": \"세명\", \"email\": \"1g@smc2024.com\", \"password\": \"1234\"}"
 모든 사용자 조회
-curl -X GET http://localhost:3000/users
+curl -X GET http://localhost:3000/users -b cookies.txt
 특정 사용자 조회
-curl -X GET http://localhost:3000/users/1
+curl -X GET http://localhost:3000/users/1 -b cookies.txt
 사용자 수정
-curl -X PUT http://localhost:3000/users/1 -H "Content-Type: application/json" -d "{\"name\": \"이순신\", \"email\": \"lee@example.com\", \"password\": \"새로운비밀번호\"}"
+curl -X PUT http://localhost:3000/users/1 -H "Content-Type: application/json" -d "{\"name\": \"컴고\", \"email\": \"2g@smc2024.com\", \"password\": \"12345\"}" -b cookies.txt
 사용자 삭제
 curl -X DELETE http://localhost:3000/users/1
-
+curl -X DELETE http://localhost:3000/users/1 -b cookies.txt
 
 게시글 생성
-curl -X POST http://localhost:3000/boards -H "Content-Type: application/json" -d "{\"title\": \"제목\", \"link\": \"http://example.com\", \"content\": \"내용\", \"keyword\": \"키워드\", \"user_id\": 1}"
+curl -X POST http://localhost:3000/boards -H "Content-Type: application/json" -d "{\"title\": \"제목\", \"link\": \"http://1.smc2024.kro.kr\", \"content\": \"내용\", \"keyword\": \"키워드\", \"user_id\": 1}" -b cookies.txt
 모든 게시글 조회
 curl -X GET http://localhost:3000/boards
 특정 게시글 조회
 curl -X GET http://localhost:3000/boards/1
 게시글 수정
-curl -X PUT http://localhost:3000/boards/1 -H "Content-Type: application/json" -d "{\"title\": \"수정된 제목\", \"link\": \"http://updated-example.com\", \"content\": \"수정된 내용\", \"keyword\": \"수정된 키워드\"}"
+curl -X PUT http://localhost:3000/boards/1 -H "Content-Type: application/json" -d "{\"title\": \"수정된 제목\", \"link\": \"http://1.smc2024.kro.kr\", \"content\": \"수정된 내용\", \"keyword\": \"수정된 키워드\"}"
+curl -X PUT http://localhost:3000/boards/1 -H "Content-Type: application/json" -d "{\"title\": \"수정된 제목\", \"link\": \"http://1.smc2024.kro.kr\", \"content\": \"수정된 내용\", \"keyword\": \"수정된 키워드\"}" -b cookies.txt
 게시글 삭제
 curl -X DELETE http://localhost:3000/boards/1
+
+로그인
+curl -X POST http://localhost:3000/login -H "Content-Type: application/json" -d "{\"email\": \"1@smc2024.com\", \"password\": \"12345\"}" -c cookies.txt
+
 
 https://jsonplaceholder.typicode.com

@@ -1,6 +1,7 @@
 const express = require('express');
 const oracledb = require('oracledb');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const dbConfig = require('./dbConfig');
 
@@ -34,8 +35,8 @@ app.post('/login', async (req, res) => {
   try {
     const connection = await pool.getConnection();
     const result = await connection.execute(
-      `SELECT id, name, email FROM users WHERE email = :email AND password = :password`,
-      { email, password }
+      `SELECT id, name, email, password FROM users WHERE email = :email`,
+      { email }
     );
 
     if (result.rows.length === 0) {
@@ -43,12 +44,18 @@ app.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
+    const isPasswordValid = await bcrypt.compare(password, user.PASSWORD); // 비밀번호 검증
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' });
+    }
+
     const token = jwt.sign({ id: user.ID, name: user.NAME, email: user.EMAIL }, SECRET_KEY, {
       expiresIn: '1h' // 토큰 만료 시간 설정 (1시간)
     });
 
-    // 토큰을 쿠키에 저장 (HTTP Only 옵션 설정)
-    res.cookie('token', token, { httpOnly: true });
+    // 토큰을 쿠키에 저장
+    res.cookie('token', token, { httpOnly: true, secure: true, maxAge: 3600000 }); // 1시간 동안 유효
     res.json({ message: '로그인 성공', token });
 
     connection.close();
@@ -69,18 +76,21 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// 사용자 생성
+// 사용자 생성 (회원가입)
 app.post('/users', async (req, res) => {
   const { name, email, password } = req.body;
   const pool = req.app.locals.pool;
 
   try {
+    const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 해시 (10은 saltRounds)
+
     const connection = await pool.getConnection();
     const result = await connection.execute(
       `INSERT INTO users (id, name, email, password) VALUES (users_seq.NEXTVAL, :name, :email, :password)`,
-      { name, email, password },
+      { name, email, password: hashedPassword },
       { autoCommit: true }
     );
+
     res.status(201).json({ id: result.lastRowid, name, email });
     connection.close();
   } catch (err) {
@@ -132,11 +142,29 @@ app.put('/users/:id', authenticateToken, async (req, res) => {
 
   try {
     const connection = await pool.getConnection();
+
+    // 비밀번호가 제공된 경우에만 해시 처리
+    let hashedPassword;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 해시 (10은 saltRounds)
+    }
+
+    // 비밀번호가 제공되었는지에 따라 다른 쿼리 실행
     const result = await connection.execute(
-      `UPDATE users SET name = :name, email = :email, password = :password WHERE id = :id`,
-      { id: parseInt(id), name, email, password },
+      `UPDATE users SET 
+        name = :name, 
+        email = :email, 
+        password = COALESCE(:password, password) 
+       WHERE id = :id`,
+      { 
+        id: parseInt(id), 
+        name, 
+        email, 
+        password: hashedPassword || null // null이면 기존 비밀번호 유지 
+      },
       { autoCommit: true }
     );
+
     if (result.rowsAffected === 0) {
       res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     } else {
