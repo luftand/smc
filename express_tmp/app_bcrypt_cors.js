@@ -15,7 +15,10 @@ const PORT = 3000;
 const SECRET_KEY = 'SMC2024'; // JWT 서명용 비밀 키
 
 // Enable CORS
-app.use(cors()); // Use cors as a middleware
+app.use(cors({
+  origin: 'http://localhost:3001', // 클라이언트 도메인 (React 앱의 도메인)
+  credentials: true, // 쿠키와 인증 정보 포함
+}));
 
 app.use(express.json());
 app.use(cookieParser());
@@ -61,7 +64,7 @@ app.post('/login', async (req, res) => {
     });
 
     // 토큰을 쿠키에 저장
-    res.cookie('token', token, { httpOnly: true, secure: true, maxAge: 3600000 }); // 1시간 동안 유효
+    res.cookie('token', token, { httpOnly: true, secure: true, maxAge: 3600000  }); // 1시간 동안 유효
     res.json({ message: '로그인 성공', token });
 
     connection.close();
@@ -232,7 +235,7 @@ app.get('/boards', async (req, res) => {
   try {
     const connection = await pool.getConnection();
     const result = await connection.execute(
-      `SELECT id, title, link, content, keyword, user_id, created_at FROM boards`
+      `SELECT id, title, link, content, keyword, user_id, created_at FROM boards order by created_at desc`
     );
 
     const rows = await Promise.all(
@@ -368,6 +371,27 @@ app.delete('/boards/:id', authenticateToken, async (req, res) => {
     connection.close();
   } catch (err) {
     res.status(500).json({ message: '게시글 삭제 중 오류 발생', error: err.message });
+  }
+});
+
+// 날짜별 게시글 수 집계 API
+app.get('/api/dashboard', async (req, res) => {
+  const pool = req.app.locals.pool;
+  
+  try {
+    const connection = await pool.getConnection();
+    const result = await connection.execute(
+      `SELECT TO_CHAR(created_at, 'YYYY-MM-DD') AS created_date, COUNT(*) AS count
+       FROM boards
+       GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
+       ORDER BY created_date`
+    );
+
+    // 결과를 JSON 형태로 응답
+    res.json(result.rows);
+    connection.close();
+  } catch (err) {
+    res.status(500).json({ message: '데이터를 불러오는 중 오류 발생', error: err.message });
   }
 });
 
